@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "670687096224",
+    "project_id": "knockster-safety",
+    "storage_bucket": "knockster-safety.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:670687096224:android:97092923cf28b1a7efc8c5",
+        "android_client_info": {
+          "package_name": "com.knockster.safety"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyApDCF-8PKcpkFA5PVf4_7hyKy_2fVQrTI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
