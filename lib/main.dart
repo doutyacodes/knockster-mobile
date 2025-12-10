@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Import all screens
 import 'screens/login_screen.dart';
@@ -17,6 +18,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 
 // Import services
 import 'services/firebase_notification_service.dart';
+import 'services/auth_service.dart';
 
 void handleNotificationNavigation(Map<String, dynamic> data) {
   final type = data['type'];
@@ -45,6 +47,9 @@ void handleNotificationNavigation(Map<String, dynamic> data) {
 
 // Global navigator key for accessing router from notification handlers
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Global auth service instance
+final AuthService authService = AuthService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,7 +112,36 @@ class KnocksterApp extends StatelessWidget {
 
   static final GoRouter _router = GoRouter(
     initialLocation: '/login',
-    navigatorKey: navigatorKey, // 🔥 HERE instead
+    navigatorKey: navigatorKey,
+    redirect: (context, state) async {
+      // Get authentication status
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getInt('user_id');
+      final isLoggedIn = userId != null;
+
+      final isGoingToLogin = state.matchedLocation == '/login';
+      final isGoingToAuth = state.matchedLocation == '/login' ||
+                            state.matchedLocation == '/pin-setup' ||
+                            state.matchedLocation == '/schedule' ||
+                            state.matchedLocation == '/success';
+
+      print('🔐 Auth Redirect: isLoggedIn=$isLoggedIn, location=${state.matchedLocation}');
+
+      // If not logged in and trying to access protected route, redirect to login
+      if (!isLoggedIn && !isGoingToAuth) {
+        print('🔐 Not logged in, redirecting to /login');
+        return '/login';
+      }
+
+      // If logged in and trying to access login, redirect to home
+      if (isLoggedIn && isGoingToLogin) {
+        print('🔐 Already logged in, redirecting to /home');
+        return '/home';
+      }
+
+      // No redirect needed
+      return null;
+    },
     routes: [
       // Authentication
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),

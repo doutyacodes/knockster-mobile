@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/firebase_notification_service.dart';
+import '../main.dart' show authService;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -76,6 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
         if (organizations.isNotEmpty) {
           await prefs.setInt('org_id', organizations.first['org_id']);
         }
+
+        // ✅ SAVE AUTH TOKEN using AuthService
+        final authToken = 'user_${user['id']}_${DateTime.now().millisecondsSinceEpoch}';
+        await authService.saveAuthToken(authToken);
+        print('✅ Auth token saved: $authToken');
 
         // Register device token for push notifications
         try {
@@ -157,6 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       body: SafeArea(
+        minimum: const EdgeInsets.all(0),
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../main.dart' show authService;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,12 +32,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final userId = prefs.getInt('user_id');
 
       if (userId == null) {
-        setState(() {
-          _isLoading = false;
-        });
+        // ✅ If no user_id, redirect to login
+        if (mounted) {
+          context.go('/login');
+        }
         return;
       }
-
+print('🔄 Fetching today\'s check-ins for user_id: $userId');
       final response = await http.get(
         Uri.parse('https://knockster-safety.vercel.app/api/mobile-api/checkins/today/$userId'),
         headers: {'Content-Type': 'application/json'},
@@ -90,6 +92,43 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadTodayCheckins();
   }
 
+  Future<void> _handleLogout() async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Logout'),
+        content: Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Clear all user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      // Clear auth token
+      await authService.clearAuthToken();
+
+      print('✅ User logged out successfully');
+
+      // Navigate to login
+      if (mounted) {
+        context.go('/login');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -102,10 +141,9 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('Safety Check-ins'),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings_outlined),
-            onPressed: () {
-              // TODO: Navigate to settings
-            },
+            icon: Icon(Icons.logout_outlined),
+            tooltip: 'Logout',
+            onPressed: _handleLogout,
           ),
         ],
       ),

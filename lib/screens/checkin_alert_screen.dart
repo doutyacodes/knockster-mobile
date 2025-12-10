@@ -31,12 +31,6 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
       setState(() {
         _pin += number;
       });
-
-      // Auto-submit when PIN is 4-6 digits
-      if (_pin.length >= 4) {
-        // Optional: Auto-verify after a short delay
-        // _verifyPin();
-      }
     }
   }
 
@@ -171,40 +165,6 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
     );
   }
 
-  Future<void> _onSnooze() async {
-    try {
-      await http.put(
-        Uri.parse('https://knockster-safety.vercel.app/api/mobile-api/checkins/verify'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'checkin_id': widget.checkinId,
-        }),
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Check-in snoozed for 5 minutes'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-        context.go('/home');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Check-in snoozed locally (server offline)'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        );
-        context.go('/home');
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -216,54 +176,98 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: isSmallScreen ? 24 : 48,
-            vertical: 24,
+            horizontal: isSmallScreen ? 20 : 48,
+            vertical: 16,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.close_rounded),
-                    onPressed: () => context.go('/home'),
-                  ),
-                  TextButton.icon(
-                    onPressed: _onSnooze,
-                    icon: Icon(Icons.snooze, size: 18),
-                    label: Text('Snooze'),
-                  ),
-                ],
+              // Header - Close Button Only
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: Icon(Icons.close_rounded),
+                  onPressed: () => context.go('/home'),
+                ),
               ).animate().fadeIn(duration: 300.ms),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
 
-              // Alert Icon
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary.withValues(alpha: 0.2),
-                      colorScheme.secondary.withValues(alpha: 0.2),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              // Top Icon Image from Pexels
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.network(
+                    'https://images.pexels.com/photos/6804595/pexels-photo-6804595.jpeg?auto=compress&cs=tinysrgb&w=400',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              colorScheme.primary.withValues(alpha: 0.2),
+                              colorScheme.secondary.withValues(alpha: 0.2),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.security,
+                          size: 50,
+                          color: colorScheme.primary,
+                        ),
+                      );
+                    },
                   ),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.notifications_active_rounded,
-                  size: 50,
-                  color: colorScheme.primary,
                 ),
               ).animate().scale(
                 duration: 600.ms,
                 curve: Curves.elasticOut,
               ),
+
+              const SizedBox(height: 20),
+
+              // Advertisement Banner from Pexels
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.network(
+                  'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800&h=200',
+                  height: 100,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            colorScheme.primary.withValues(alpha: 0.1),
+                            colorScheme.secondary.withValues(alpha: 0.1),
+                          ],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Advertisement Space',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ).animate().fadeIn(duration: 500.ms, delay: 100.ms),
 
               const SizedBox(height: 24),
 
@@ -271,37 +275,37 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
               Text(
                 'Safety Check-in Required',
                 style: GoogleFonts.inter(
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ).animate().fadeIn(duration: 500.ms, delay: 200.ms),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // Subtitle
               Text(
                 '${widget.label} • ${widget.scheduledTime}',
                 style: GoogleFonts.inter(
-                  fontSize: 16,
+                  fontSize: 15,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
                 textAlign: TextAlign.center,
               ).animate().fadeIn(duration: 500.ms, delay: 300.ms),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               Text(
                 'Enter your PIN to confirm you are safe',
                 style: GoogleFonts.inter(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 textAlign: TextAlign.center,
               ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               // PIN Display
               _PinDisplay(
@@ -310,9 +314,9 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
                 colorScheme: colorScheme,
               ).animate().fadeIn(duration: 500.ms, delay: 500.ms),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
-              // Numeric Keypad
+              // Numeric Keypad (Smaller)
               _NumericKeypad(
                 onNumberTap: _onNumberTap,
                 onBackspace: _onBackspace,
@@ -321,17 +325,17 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
                 enabled: !_isVerifying,
               ).animate().fadeIn(duration: 500.ms, delay: 600.ms),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Verify Button
               SizedBox(
-                height: 56,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: _isVerifying || _pin.length < 4 ? null : _verifyPin,
                   child: _isVerifying
                       ? SizedBox(
-                          height: 24,
-                          width: 24,
+                          height: 22,
+                          width: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
@@ -342,15 +346,15 @@ class _CheckinAlertScreenState extends State<CheckinAlertScreen> {
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.check_circle_outline, size: 24),
-                            const SizedBox(width: 12),
+                            Icon(Icons.check_circle_outline, size: 22),
+                            const SizedBox(width: 10),
                             Text('Confirm Safety'),
                           ],
                         ),
                 ),
               ).animate().fadeIn(duration: 500.ms, delay: 800.ms),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -378,9 +382,9 @@ class _PinDisplay extends StatelessWidget {
       children: List.generate(
         maxLength,
         (index) => Container(
-          width: 16,
-          height: 16,
-          margin: const EdgeInsets.symmetric(horizontal: 8),
+          width: 14,
+          height: 14,
+          margin: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: index < pin.length
@@ -401,7 +405,7 @@ class _PinDisplay extends StatelessWidget {
   }
 }
 
-// Numeric Keypad Widget
+// Numeric Keypad Widget (SMALLER BUTTONS)
 class _NumericKeypad extends StatelessWidget {
   final Function(String) onNumberTap;
   final VoidCallback onBackspace;
@@ -445,7 +449,7 @@ class _NumericKeypad extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         // Row 2: 4, 5, 6
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -470,7 +474,7 @@ class _NumericKeypad extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         // Row 3: 7, 8, 9
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -495,7 +499,7 @@ class _NumericKeypad extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         // Row 4: Clear, 0, Backspace
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -527,7 +531,7 @@ class _NumericKeypad extends StatelessWidget {
   }
 }
 
-// Keypad Button Widget
+// Keypad Button Widget (SMALLER SIZE)
 class _KeypadButton extends StatelessWidget {
   final String? text;
   final IconData? icon;
@@ -549,24 +553,24 @@ class _KeypadButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 6),
         child: AspectRatio(
-          aspectRatio: 1,
+          aspectRatio: 1.2, // Makes buttons slightly shorter/wider
           child: Material(
             color: enabled
                 ? (isAction
                     ? colorScheme.surfaceContainerHighest
                     : colorScheme.primaryContainer)
                 : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: InkWell(
               onTap: enabled ? onTap : null,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               child: Center(
                 child: icon != null
                     ? Icon(
                         icon,
-                        size: 28,
+                        size: 22,
                         color: enabled
                             ? colorScheme.onSurface
                             : colorScheme.onSurface.withValues(alpha: 0.3),
@@ -574,7 +578,7 @@ class _KeypadButton extends StatelessWidget {
                     : Text(
                         text ?? '',
                         style: GoogleFonts.inter(
-                          fontSize: 28,
+                          fontSize: 22,
                           fontWeight: FontWeight.w600,
                           color: enabled
                               ? colorScheme.onSurface
